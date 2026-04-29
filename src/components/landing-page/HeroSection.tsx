@@ -71,7 +71,7 @@ export default function HeroSection({ theme = "light" }: HeroSectionProps) {
                   Treasury Streaming
                 </span>
               </h1>
-              <h2 className={`text-xl font-medium max-w-xl ${isDark ? "text-slate-400" : "text-slate-600"}`}>
+              <h2 className={`text-heading-3 max-w-xl ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                 Real-time USDC infrastructure for DAOs, grants, and ecosystem funds. 
                 Automate your payouts with second-by-second precision.
               </h2>
@@ -80,7 +80,7 @@ export default function HeroSection({ theme = "light" }: HeroSectionProps) {
             {/* Subtext Detail (Accessibility & Trust) */}
             <p
               className={`
-                max-w-lg text-base leading-relaxed opacity-80
+                text-body-lg max-w-lg opacity-80
                 ${isDark ? "text-slate-500" : "text-slate-500"}
               `}
             >
@@ -115,14 +115,19 @@ export default function HeroSection({ theme = "light" }: HeroSectionProps) {
               </button>
 
               <button
-                className={`
-                  flex cursor-pointer items-center gap-3 rounded-2xl border px-8 py-4 text-lg font-bold transition-all duration-300 hover:bg-white/5 active:scale-95
-                  ${
-                    isDark
-                      ? "border-slate-800 bg-slate-900/50 text-slate-300 hover:border-slate-600"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 shadow-sm"
-                  }
-                `}
+                className="flex cursor-pointer items-center gap-3 rounded-2xl border px-8 py-4 text-lg font-bold transition-all duration-300 active:scale-95"
+                style={{
+                  borderColor: "var(--color-border-default)",
+                  background: "var(--color-surface-default)",
+                  color: "var(--color-text-secondary)",
+                  boxShadow: "var(--shadow-sm)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border-secondary)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border-default)";
+                }}
                 onClick={() => alert("Watch demo clicked")}
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-500">
@@ -156,7 +161,7 @@ export default function HeroSection({ theme = "light" }: HeroSectionProps) {
                   >
                     {value}
                   </span>
-                  <span className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+                  <span className={`text-label-sm uppercase tracking-widest ${isDark ? "text-slate-500" : "text-slate-400"}`}>
                     {label}
                   </span>
                 </div>
@@ -207,7 +212,7 @@ export default function HeroSection({ theme = "light" }: HeroSectionProps) {
                     </svg>
                   </div>
                   <div className="flex flex-col">
-                    <h3 className={`text-lg font-bold leading-none mb-1.5 ${isDark ? "text-white" : "text-slate-800"}`}>
+                    <h3 className={`text-heading-4 leading-none mb-1.5 ${isDark ? "text-white" : "text-slate-800"}`}>
                       Stellar Growth Grant
                     </h3>
                     <div className="flex items-center gap-2">

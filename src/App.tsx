@@ -9,7 +9,6 @@ import Streams from "./pages/Streams";
 import Recipient from "./pages/Recipient";
 import ConnectWallet from "./pages/ConnectWallet";
 import Landing from "./pages/Landing";
-import TreasuryPage from "./pages/TreasuryPage";
 import ErrorPage from "./pages/ErrorPage";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +45,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <WalletProvider>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <AppNavbar 
           onThemeToggle={handleThemeToggle} 
           theme={theme} 

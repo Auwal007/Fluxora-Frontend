@@ -1,7 +1,10 @@
 /// <reference types="vitest" />
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+// Separate vitest config that omits the @tailwindcss/vite plugin.
+// The tailwindcss plugin requires a native binary (@tailwindcss/oxide)
+// that is not needed during unit tests (jsdom environment).
 export default defineConfig({
   plugins: [react()],
   test: {
