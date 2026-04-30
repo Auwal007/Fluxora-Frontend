@@ -16,6 +16,14 @@ import {
   type StreamRecord,
   type StreamStatus,
 } from "../data/streamRecords";
+import {
+  formatDateWithTimezone,
+  getRelativeTime,
+  getCliffStatus,
+  getCliffStatusText,
+  formatDetailTime,
+  getUrgencyLevel,
+} from "../lib/timePresentation";
 import "./Streams.css";
 import TruncatedAddress from "../components/common/TruncatedAddress";
 
@@ -36,11 +44,7 @@ function formatMonthlyRate(value: number) {
 
 function formatDate(value?: string) {
   if (!value) return "Not scheduled";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
+  return formatDateWithTimezone(value);
 }
 
 function getStatusClassName(status: StreamStatus) {
@@ -96,6 +100,10 @@ function StreamCard({
   onToggle: () => void;
   onOpenDetail: () => void;
 }) {
+  const urgency = getUrgencyLevel(stream.cliffDate, stream.endDate);
+  const cliffStatus = getCliffStatusText(stream.cliffDate);
+  const endRelative = getRelativeTime(stream.endDate);
+
   return (
     <article className={`stream-card is-${getStatusClassName(stream.status)}`}>
       <div className="stream-card__header">
@@ -147,16 +155,44 @@ function StreamCard({
           <span>Streaming rate</span>
           <strong>{formatMonthlyRate(stream.monthlyRate)}</strong>
           <div className="stream-card__meta-label">
-            Runs through {formatDate(stream.endDate)}
+            {stream.endDate ? `Ends ${endRelative}` : "No end date set"}
           </div>
         </div>
         <div className="stream-meta-block">
           <span>Withdrawable now</span>
           <strong>{formatUsdc(stream.withdrawableAmount)}</strong>
           <div className="stream-card__meta-label">
-            Next unlock {formatDate(stream.nextUnlockDate)}
+            {stream.nextUnlockDate
+              ? `Next unlock ${getRelativeTime(stream.nextUnlockDate)}`
+              : "No upcoming unlock"}
           </div>
         </div>
+      </div>
+
+      {/* Time display bar with cliff and end dates */}
+      <div className="stream-time-bar" aria-label="Stream timeline">
+        {stream.cliffDate && (
+          <div
+            className={`stream-time-bar__item stream-time-bar__cliff is-${cliffStatus}`}
+            aria-label={`Cliff date: ${formatDateWithTimezone(stream.cliffDate)} (${cliffStatus})`}
+          >
+            <span className="stream-time-bar__icon" aria-hidden="true">⏱</span>
+            <span className="stream-time-bar__label">Cliff</span>
+            <span className="stream-time-bar__date">{formatDateWithTimezone(stream.cliffDate)}</span>
+            <span className="stream-time-bar__relative">({getRelativeTime(stream.cliffDate)})</span>
+          </div>
+        )}
+        {stream.endDate && (
+          <div
+            className={`stream-time-bar__item stream-time-bar__end is-${urgency.end}`}
+            aria-label={`End date: ${formatDateWithTimezone(stream.endDate)} (${endRelative})`}
+          >
+            <span className="stream-time-bar__icon" aria-hidden="true">→</span>
+            <span className="stream-time-bar__label">End</span>
+            <span className="stream-time-bar__date">{formatDateWithTimezone(stream.endDate)}</span>
+            <span className="stream-time-bar__relative">({endRelative})</span>
+          </div>
+        )}
       </div>
 
       <div className="stream-progress">
@@ -207,8 +243,18 @@ function StreamCard({
                 </div>
                 <div className="stream-panel__row">
                   <span className="stream-panel__row-label">Cliff date</span>
+                  <div className="stream-panel__row-value stream-time-value">
+                    <span className={`stream-cliff-badge is-${cliffStatus}`}>
+                      {cliffStatus === "passed" && "✓ "}
+                      {cliffStatus === "upcoming" && "⏱ "}
+                      {formatDetailTime(stream.cliffDate)}
+                    </span>
+                  </div>
+                </div>
+                <div className="stream-panel__row">
+                  <span className="stream-panel__row-label">End date</span>
                   <div className="stream-panel__row-value">
-                    {formatDate(stream.cliffDate)}
+                    {formatDetailTime(stream.endDate, { includeTimezone: true })}
                   </div>
                 </div>
                 <div className="stream-panel__row">
