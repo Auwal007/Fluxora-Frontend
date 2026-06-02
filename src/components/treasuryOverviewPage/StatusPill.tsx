@@ -11,8 +11,13 @@ import {
 type ExtendedStatus = StreamStatus | "Healthy" | "At-Risk" | "Critical";
 
 interface Props {
-  status: ExtendedStatus;
-  className?: string;
+  status: StreamStatus;
+  /** Icon size */
+  iconSize?: 'xs' | 'sm' | 'md' | 'lg';
+}
+
+interface Props {
+  status: StreamStatus;
 }
 
 const statusStyles: Record<ExtendedStatus, { background: string; color: string; Icon: any; label: string }> = {
@@ -54,8 +59,8 @@ const statusStyles: Record<ExtendedStatus, { background: string; color: string; 
   },
 };
 
-export default function StatusPill({ status, className = "" }: Props) {
-  const { background, color, Icon, label } = statusStyles[status];
+export default function StatusPill({ status, iconSize = 'xs' }: Props) {
+  const { background, color } = statusStyles[status];
 
   return (
     <span
@@ -63,7 +68,7 @@ export default function StatusPill({ status, className = "" }: Props) {
       aria-label={`${label} status`}
       tabIndex={0}
       style={{ backgroundColor: background, color }}
-      className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium ${className}`}
+      className={`inline-flex items-center rounded-md px-3 py-1 text-sm font-medium icon-${iconSize}`}
     >
       <Icon size={14} aria-hidden="true" focusable={false} />
       <span style={{ marginLeft: 8 }}>{label.toUpperCase()}</span>
