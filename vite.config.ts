@@ -41,7 +41,29 @@ export default defineConfig(async () => {
       chunkSizeWarningLimit: CHUNK_SIZE_WARNING_LIMIT_KB,
       rollupOptions: {
         output: {
-          manualChunks: vendorChunk,
+          manualChunks(id: string) {
+            const normalizedId = id.replace(/\\/g, "/");
+
+            // App-page code splitting (lazy routes).
+            if (normalizedId.includes("/src/pages/Dashboard")) {
+              return "app-dashboard";
+            }
+            if (normalizedId.includes("/src/pages/Streams")) {
+              return "app-streams";
+            }
+            if (normalizedId.includes("/src/pages/Recipient")) {
+              return "app-recipient";
+            }
+            if (normalizedId.includes("/src/pages/TreasuryPage")) {
+              return "app-treasury";
+            }
+            if (normalizedId.includes("/src/pages/EmptyStateDemo")) {
+              return "app-empty-state-demo";
+            }
+
+            // Vendor splitting for bundle-size visibility.
+            return vendorChunk(id);
+          },
         },
       },
     },
