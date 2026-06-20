@@ -4,7 +4,7 @@ import {
   useState,
   useEffect,
   useRef,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import {
   isConnected,
@@ -18,10 +18,21 @@ import {
   type StellarNetwork,
 } from "../../lib/stellarNetwork";
 
+/**
+ * Safe wallet restore error categories exposed to the UI. Raw Freighter errors
+ * stay inside the provider so addresses and extension internals are not leaked.
+ */
+export type WalletError =
+  | { type: "not_installed" }
+  | { type: "rejected" }
+  | { type: "network_error" }
+  | { type: "unknown" };
+
 interface WalletState {
   address: string | null;
   network: string | null;
   connected: boolean;
+  error: WalletError | null;
 }
 
 interface WalletContextType extends WalletState {
@@ -33,7 +44,56 @@ interface WalletContextType extends WalletState {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-const INITIAL: WalletState = { address: null, network: null, connected: false };
+const INITIAL: WalletState = {
+  address: null,
+  network: null,
+  connected: false,
+  error: null,
+};
+
+type FreighterErrorLike = {
+  code?: number;
+  message?: string;
+};
+
+function classifyWalletError(error: unknown): WalletError {
+  if (!error || typeof error !== "object") {
+    return { type: "unknown" };
+  }
+
+  const { code, message } = error as FreighterErrorLike;
+  const normalizedMessage = message?.toLowerCase() ?? "";
+
+  if (
+    normalizedMessage.includes("not supported") ||
+    normalizedMessage.includes("not installed") ||
+    normalizedMessage.includes("extension not found") ||
+    normalizedMessage.includes("content script")
+  ) {
+    return { type: "not_installed" };
+  }
+
+  if (
+    code === -4 ||
+    normalizedMessage.includes("declined") ||
+    normalizedMessage.includes("denied") ||
+    normalizedMessage.includes("rejected") ||
+    normalizedMessage.includes("not allowed")
+  ) {
+    return { type: "rejected" };
+  }
+
+  if (
+    normalizedMessage.includes("network") ||
+    normalizedMessage.includes("rpc") ||
+    normalizedMessage.includes("timeout") ||
+    normalizedMessage.includes("failed to fetch")
+  ) {
+    return { type: "network_error" };
+  }
+
+  return { type: "unknown" };
+}
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WalletState>(INITIAL);
@@ -52,7 +112,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     state.connected && isStellarNetworkMismatch(state.network, expectedNetwork);
 
   const connect = (address: string, network: string) =>
-    setState({ address, network, connected: true });
+    setState({ address, network, connected: true, error: null });
 
   const disconnect = () => {
     disconnectVersionRef.current += 1;
@@ -60,21 +120,48 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setState(INITIAL);
   };
 
-  // Silently restore session if the user already approved this app
+  // Silently restore session if the user already approved this app.
   useEffect(() => {
     let cancelled = false;
     const restoreDisconnectVersion = disconnectVersionRef.current;
 
+    const restoreError = (error: unknown) => {
+      if (cancelled || disconnectVersionRef.current !== restoreDisconnectVersion) {
+        return;
+      }
+      setState((prev) => ({
+        ...prev,
+        address: null,
+        network: null,
+        connected: false,
+        error: classifyWalletError(error),
+      }));
+    };
+
     (async () => {
       try {
         const conn = await isConnected();
+        if (conn.error) {
+          restoreError(conn.error);
+          return;
+        }
         if (!conn.isConnected) return;
 
         const addr = await getAddress(); // no popup — returns "" if not approved
-        if (addr.error || !addr.address) return;
+        if (addr.error) {
+          restoreError(addr.error);
+          return;
+        }
+        if (!addr.address) {
+          restoreError({ message: "Freighter address request rejected" });
+          return;
+        }
 
         const net = await getNetwork();
-        if (net.error) return;
+        if (net.error) {
+          restoreError(net.error);
+          return;
+        }
 
         if (
           cancelled ||
@@ -87,9 +174,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           address: addr.address,
           network: net.network,
           connected: true,
+          error: null,
         });
-      } catch {
-        // Extension not installed or no prior approval — ignore silently
+      } catch (error) {
+        // Keep restore silent but expose a recoverable category to consumers.
+        restoreError(error);
       }
     })();
 
@@ -98,7 +187,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Watch for account / network switches inside Freighter
+  // Watch for account / network switches inside Freighter.
   useEffect(() => {
     clearWatcher();
     if (!state.connected) return undefined;
@@ -109,7 +198,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       setState((prev) =>
         address === prev.address && network === prev.network
           ? prev
-          : { address, network, connected: true },
+          : { address, network, connected: true, error: null },
       );
     });
 
