@@ -169,6 +169,16 @@ The provider only marks a session connected after Freighter confirms an
 approved address, watches account and network changes, and clears address and
 network on disconnect so stale wallet state cannot keep signing actions enabled.
 
+## Wallet modal
+
+`src/components/ConnectWalletModal.tsx` is the canonical wallet connection
+modal. Wallet entry points, including `WalletButton`, should route Freighter,
+Albedo, and WalletConnect actions through this component so error states and
+focus management stay consistent.
+
+`src/components/ConnectWalletModal.example.tsx` is a sample-only review surface
+and is not imported by the application routes.
+
 ## App route guard
 
 The `/app` route subtree is wrapped in `RequireWallet`, which reads the shared

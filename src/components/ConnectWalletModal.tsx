@@ -41,6 +41,7 @@ export default function ConnectWalletModal({
 }: ConnectWalletModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   
   // Track hovered/focused options in default view
   const [hoveredOptionId, setHoveredOptionId] = useState<string | null>(null);
@@ -112,6 +113,7 @@ export default function ConnectWalletModal({
       return;
     }
 
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -153,6 +155,8 @@ export default function ConnectWalletModal({
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
+      previouslyFocusedRef.current?.focus();
+      previouslyFocusedRef.current = null;
     };
   }, [isOpen, onClose]);
 

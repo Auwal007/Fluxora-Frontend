@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useWallet } from "./Walletcontext";
-import WalletConnectModal from "./Walletconnectmodal";
+import ConnectWalletModal from "../ConnectWalletModal";
 
 import { ChevronDown, Copy, Check, ExternalLink, LogOut } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -16,6 +16,16 @@ export default function WalletButton() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // The canonical ConnectWalletModal performs the Freighter connection and
+  // error handling internally; WalletButton just closes once it succeeds.
+  function handleConnectFreighter() {
+    setModalOpen(false);
+  }
+
+  function handleOpenModal() {
+    setModalOpen(true);
+  }
 
   function handleCopy() {
     if (!address) return;
@@ -44,7 +54,7 @@ export default function WalletButton() {
     return (
       <>
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={handleOpenModal}
           className="px-4 py-3 text-base font-medium text-white rounded-lg transition-all duration-200 ease-in-out cursor-pointer"
           style={{
             backgroundColor: "var(--color-accent-primary)",
@@ -53,9 +63,11 @@ export default function WalletButton() {
         >
           Connect wallet
         </button>
-        <WalletConnectModal
+        <ConnectWalletModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
+          onConnectFreighter={handleConnectFreighter}
+          showStateSwitcher={false}
         />
       </>
     );
