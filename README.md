@@ -123,6 +123,12 @@ Fluxora integrates with the Stellar ecosystem for on-chain stream management:
 - **Network Validation**: Verifies that the connected Freighter extension matches `VITE_NETWORK` before building or signing transactions, protecting users from cross-network mistakes.
 - **Robust Error Mapping**: Automatically maps user rejections, simulation failures, and timeouts into descriptive toasts and inline alert messages.
 
+## SEO and Social Previews
+
+Search and link-preview metadata lives in `index.html`. Update the description,
+canonical URL, Open Graph tags, Twitter Card tags, and absolute HTTPS preview
+image there when launching a new campaign or changing the public marketing URL.
+
 ## Related repos
 
 - **fluxora-backend** — API and streaming engine
