@@ -54,7 +54,9 @@ describe("Breadcrumb", () => {
   });
 
   it("truncates Stellar address labels visually while preserving the full label for assistive context", () => {
-    const address = `G${"A".repeat(51)}YZ23`;
+    // Checksum-valid Stellar public key (the centralized validator from #331
+    // rejects addresses with an invalid CRC16 checksum).
+    const address = "GATDOSCZNJ5YZHNOX7IOD4QDCQSTMR2YNF5IXHFNX3H6B4ICCMSDLOWN";
 
     renderBreadcrumb([
       { label: "Streams", to: "/streams" },
@@ -63,10 +65,12 @@ describe("Breadcrumb", () => {
 
     const currentPage = screen.getByLabelText(address);
 
-    expect(currentPage).toHaveTextContent("GAAAAAAA…YZ23");
+    expect(currentPage).toHaveTextContent(
+      `${address.slice(0, 8)}...${address.slice(-4)}`,
+    );
     expect(currentPage).toHaveAttribute("title", address);
     expect(currentPage).toHaveAttribute("aria-current", "page");
-    expect(screen.queryByRole("link", { name: /GABCDEFG/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /GATDOSCZ/ })).toBeNull();
   });
 
   it("has no automated accessibility violations", async () => {

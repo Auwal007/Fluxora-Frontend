@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { render, fireEvent, screen, within } from '@testing-library/react';
 import CreateStreamModal from '../CreateStreamModal';
 
+// Checksum-valid Stellar public key (required by the centralized
+// isValidStellarAddress validator introduced in #331).
 const VALID_STELLAR =
-  'GABC' + 'ABCDEFGHJKLMNPQRSTUVWXYZ234567'.repeat(2).slice(0, 52);
+  'GATDOSCZNJ5YZHNOX7IOD4QDCQSTMR2YNF5IXHFNX3H6B4ICCMSDLOWN';
 
 function fillStep1(container: HTMLElement, deposit = '123.45') {
   const recipientInput = container.querySelector(
@@ -72,7 +74,11 @@ describe('CreateStreamModal review step', () => {
     fillStep2AndReview(container, { rate: '12.50', duration: '3' });
 
     expect(screen.getByText('123.45')).toBeInTheDocument();
-    expect(screen.getByText('GABCAB . . . STUVWX')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${VALID_STELLAR.slice(0, 8)}...${VALID_STELLAR.slice(-4)}`,
+      ),
+    ).toBeInTheDocument();
     expect(screen.queryByText('200.00')).not.toBeInTheDocument();
     expect(
       screen.queryByText(/GDU4D7EXAMPLEADDRESS0L50DR/i),

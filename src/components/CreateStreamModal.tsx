@@ -7,6 +7,7 @@ import { useModalAccessibility } from './useModalAccessibility';
 import { useWallet } from './wallet-connect/Walletcontext';
 import { useToast } from './toast/ToastProvider';
 import { createStream } from '../lib/stellar/tx';
+import { isValidStellarAddress, maskAddress } from '../lib/stellar';
 
 const USDC_DECIMAL_PLACES = 7;
 
@@ -27,12 +28,6 @@ export function sanitizeDepositAmountInput(value: string): string {
 export const MAX_ACCRUAL_RATE = 100_000;
 export const MAX_DURATION_DAYS = 3_650;
 export const MAX_REQUIRED_DEPOSIT = MAX_ACCRUAL_RATE * MAX_DURATION_DAYS;
-
-function maskAddress(addr: string): string {
-  const t = addr.trim();
-  if (t.length <= 12) return t || "—";
-  return `${t.slice(0, 6)} . . . ${t.slice(-6)}`;
-}
 
 /**
  * Converts a user-entered decimal string into the numeric value used by stream
@@ -66,14 +61,6 @@ function formatReviewDeposit(value: string): string {
 /** Formats the daily duration unit with singular/plural copy. */
 function formatDurationUnit(value: string): string {
   return parseStreamNumber(value) === 1 ? "day" : "days";
-}
-
-/** Stellar public key: starts with G, 56 chars, base32 (no 0,1,8,9). */
-function isValidStellarAddress(value: string): boolean {
-  const trimmed = value.trim();
-  if (trimmed.length !== 56) return false;
-  if (trimmed[0] !== "G") return false;
-  return /^G[ABCDEFGHJKLMNPQRSTUVWXYZ234567]{55}$/.test(trimmed);
 }
 
 function validateAccrualRate(value: string): string | undefined {
